@@ -1,0 +1,13 @@
+### Start hash crack execution
+POST localhost:6969/internal/api/worker/hash/crack/task
+Content-Type: application/json
+
+{
+  "request_id": "1",
+  "task_id": "2",
+  "alphabet": "abcdefghijklmnopqrstuvwxyz1234567890",
+  "hash": "e2fc714c4727ee9395f324cd2e7f331f",
+  "max_length": 4,
+  "start": 0,
+  "end": 100
+}
