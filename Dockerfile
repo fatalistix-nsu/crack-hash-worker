@@ -14,5 +14,8 @@ RUN upx ./app
 
 FROM scratch AS release
 COPY --from=build /build/app /app
+COPY .env .env
+
+EXPOSE 6970
 
 ENTRYPOINT ["/app"]
