@@ -18,29 +18,27 @@ type CrackService struct {
 	log          *slog.Logger
 }
 
-func NewCrackService(log *slog.Logger, managerAddress, workerId string) *CrackService {
+func NewCrackService(log *slog.Logger, managerConfig config.ManagerConfig, workerConfig config.WorkerConfig, workerId string) *CrackService {
 	wg := new(sync.WaitGroup)
 	parts := make(chan model.Part)
 	results := make(chan model.CompletedPart)
-	numCpu := runtime.NumCPU()
-	//numCpu := 1
 
-	for i := 0; i < numCpu; i++ {
+	for i := uint64(0); i < workerConfig.GoroutineCount; i++ {
 		wg.Add(1)
-		logWithGoroutineId := log.With(slog.Int("goroutine worker id", i))
+		logWithGoroutineId := log.With(slog.Uint64("goroutine worker id", i))
 		go worker(logWithGoroutineId, parts, results, wg)
 	}
 
-	log.Info("worker pool created", slog.Int("workers count", numCpu))
+	log.Info("worker pool created", slog.Uint64("workers count", workerConfig.GoroutineCount))
 
-	go resultHandler(log, managerAddress, workerId, results, uint64(numCpu))
+	go resultHandler(log, managerConfig.Address, workerId, results, workerConfig.GoroutineCount)
 
 	log.Info("result handler started")
 
 	return &CrackService{
 		wg:           wg,
 		parts:        parts,
-		workersCount: uint64(numCpu),
+		workersCount: workerConfig.GoroutineCount,
 		log:          log,
 	}
 }

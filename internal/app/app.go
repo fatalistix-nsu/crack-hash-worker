@@ -36,7 +36,7 @@ func New(log *slog.Logger, cfg *config.Config) (*App, error) {
 
 	log.Info("worker registered", slog.String("worker id", id))
 
-	s := service.NewCrackService(log, cfg.Manager.Address, id)
+	s := service.NewCrackService(log, cfg.Manager, cfg.Worker, id)
 	startHandler := handler.MakeStartTaskHandlerFunc(s)
 
 	v, err := validation.NewRequestValidator()

@@ -23,6 +23,7 @@ func MustRead() *Config {
 type Config struct {
 	Deployment DeploymentConfig
 	Manager    ManagerConfig
+	Worker     WorkerConfig
 }
 
 type DeploymentConfig struct {
@@ -35,4 +36,5 @@ type ManagerConfig struct {
 }
 
 type WorkerConfig struct {
+	GoroutineCount uint64 `env:"WORKER_GOROUTINE_COUNT"`
 }
