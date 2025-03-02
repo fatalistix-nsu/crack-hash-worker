@@ -6,7 +6,7 @@ import (
 	"time"
 )
 
-func MustRead() *Config {
+func MustRead() Config {
 	config := Config{}
 
 	if err := godotenv.Load(); err != nil {
@@ -17,7 +17,7 @@ func MustRead() *Config {
 		panic(err)
 	}
 
-	return &config
+	return config
 }
 
 type Config struct {

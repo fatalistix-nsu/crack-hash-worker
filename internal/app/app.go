@@ -23,7 +23,7 @@ type App struct {
 	port int
 }
 
-func New(log *slog.Logger, cfg *config.Config) (*App, error) {
+func New(log *slog.Logger, cfg config.Config) (*App, error) {
 	const op = "app.New"
 
 	registerer := client.NewRegisterer(log)
