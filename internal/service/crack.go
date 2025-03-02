@@ -3,11 +3,11 @@ package service
 import (
 	"crypto/md5"
 	"encoding/hex"
+	"github.com/fatalistix/crack-hash-worker/internal/config"
 	"github.com/fatalistix/crack-hash-worker/internal/domain/model"
 	"github.com/fatalistix/crack-hash-worker/internal/http/client"
 	"github.com/fatalistix/slogattr"
 	"log/slog"
-	"runtime"
 	"sync"
 )
 
