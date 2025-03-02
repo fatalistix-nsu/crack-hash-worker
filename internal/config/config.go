@@ -36,5 +36,6 @@ type ManagerConfig struct {
 }
 
 type WorkerConfig struct {
-	GoroutineCount uint64 `env:"WORKER_GOROUTINE_COUNT"`
+	GoroutineCount uint64        `env:"WORKER_GOROUTINE_COUNT"`
+	SubTaskTimeout time.Duration `env:"WORKER_SUB_TASK_TIMEOUT"`
 }

@@ -16,4 +16,5 @@ type CompletedPart struct {
 	Data      []string
 	Start     uint64
 	End       uint64
+	Error     error
 }
