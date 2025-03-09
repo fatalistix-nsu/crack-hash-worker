@@ -16,11 +16,17 @@ import (
 type CrackService struct {
 	wg           *sync.WaitGroup
 	parts        chan<- model.Part
+	results      chan<- model.CompletedPart
 	workersCount uint64
 	log          *slog.Logger
 }
 
-func NewCrackService(log *slog.Logger, managerConfig config.ManagerConfig, workerConfig config.WorkerConfig, workerId string) *CrackService {
+func NewCrackService(
+	log *slog.Logger,
+	managerConfig config.ManagerConfig,
+	workerConfig config.WorkerConfig,
+	workerId string,
+) *CrackService {
 	wg := new(sync.WaitGroup)
 	parts := make(chan model.Part)
 	results := make(chan model.CompletedPart)
@@ -40,6 +46,7 @@ func NewCrackService(log *slog.Logger, managerConfig config.ManagerConfig, worke
 	return &CrackService{
 		wg:           wg,
 		parts:        parts,
+		results:      results,
 		workersCount: workerConfig.GoroutineCount,
 		log:          log,
 	}
@@ -203,4 +210,22 @@ func (s *CrackService) separate(task model.Task) []model.Part {
 	separated[s.workersCount-1].End = task.End
 
 	return separated
+}
+
+func (s *CrackService) Close() error {
+	const op = "service.CrackService.Close"
+
+	log := s.log.With(
+		slog.String("operation", op),
+	)
+
+	log.Info("stopping...")
+
+	close(s.parts)
+	s.wg.Wait()
+	close(s.results)
+
+	log.Info("stopped")
+
+	return nil
 }

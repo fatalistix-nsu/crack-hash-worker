@@ -13,18 +13,22 @@ import (
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 	slogecho "github.com/samber/slog-echo"
+	"io"
 	"log/slog"
 	"net/http"
 )
 
 type App struct {
-	e    *echo.Echo
-	log  *slog.Logger
-	port int
+	e       *echo.Echo
+	log     *slog.Logger
+	closers []io.Closer
+	port    int
 }
 
 func New(log *slog.Logger, cfg config.Config) (*App, error) {
 	const op = "app.New"
+
+	closers := make([]io.Closer, 0)
 
 	registerer := client.NewRegisterer(log)
 
@@ -37,6 +41,8 @@ func New(log *slog.Logger, cfg config.Config) (*App, error) {
 	log.Info("worker registered", slog.String("worker id", id))
 
 	s := service.NewCrackService(log, cfg.Manager, cfg.Worker, id)
+	closers = append(closers, s)
+
 	startHandler := handler.MakeStartTaskHandlerFunc(s)
 
 	v, err := validation.NewRequestValidator()
@@ -56,9 +62,10 @@ func New(log *slog.Logger, cfg config.Config) (*App, error) {
 	e.Use(middleware.RequestID())
 
 	return &App{
-		e:    e,
-		log:  log,
-		port: cfg.Deployment.Port,
+		e:       e,
+		log:     log,
+		closers: closers,
+		port:    cfg.Deployment.Port,
 	}, nil
 }
 
@@ -90,6 +97,8 @@ func (a *App) Stop(ctx context.Context) error {
 		slog.String("op", op),
 	)
 
+	defer a.close()
+
 	log.Info("stopping server", slog.Int("port", a.port))
 
 	if err := a.e.Shutdown(ctx); err != nil {
@@ -100,4 +109,22 @@ func (a *App) Stop(ctx context.Context) error {
 	a.log.Info("server stopped successfully", slog.Int("port", a.port))
 
 	return nil
+}
+
+func (a *App) close() {
+	const op = "app.close"
+
+	log := a.log.With(
+		slog.String("op", op),
+	)
+
+	log.Info("closing services...")
+
+	for _, closer := range a.closers {
+		if err := closer.Close(); err != nil {
+			log.Error("error closing service", slogattr.Err(err))
+		}
+	}
+
+	log.Info("all services closed")
 }
